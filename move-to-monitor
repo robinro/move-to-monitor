@@ -1,0 +1,30 @@
+#!/bin/bash
+display_width=1920
+
+window_id=`xdotool getactivewindow`
+
+# Read window position
+x=`xwininfo -id $window_id | awk '/Absolute upper-left X:/ { print $4 }'`
+y=`xwininfo -id $window_id | awk '/Absolute upper-left Y:/ { print $4 }'`
+
+# Subtract any offsets caused by panels or window decorations
+x_offset=`xwininfo -id $window_id | awk '/Relative upper-left X:/ { print $4 }'`
+y_offset=`xwininfo -id $window_id | awk '/Relative upper-left Y:/ { print $4 }'`
+x=`expr $x - $x_offset`
+y=`expr $y - $y_offset`
+
+# Un-maximize current window so that we can move it
+wmctrl -ir $window_id -b remove,maximized_vert,maximized_horz
+
+if [ "$1" = "prev" ]
+then
+  new_x=`expr $x - $display_width`
+  xdotool windowmove $window_id $new_x $y
+elif [ "$1" = "next" ]
+then
+  new_x=`expr $x + $display_width`
+  xdotool windowmove $window_id $new_x $y
+  wmctrl -ir $window_id -b add,maximized_vert,maximized_horz
+fi
+
+
